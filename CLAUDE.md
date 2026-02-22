@@ -38,9 +38,9 @@ Phase: DEVELOPMENT
 - [x] Create project structure, pyproject.toml, and configuration
 - [x] Set up FastAPI app skeleton with health check and database setup
 - [x] Create SQLAlchemy models (User, Project, Post, Subscriber, APIKey) and Alembic migrations
-- [ ] Implement user authentication (register, login, logout, JWT middleware)
-- [ ] Build auth UI (register page, login page, protected dashboard shell)
-- [ ] Implement project CRUD (create, edit, list, delete) with dashboard UI
+- [x] Implement user authentication (register, login, logout, JWT middleware)
+- [x] Build auth UI (register page, login page, protected dashboard shell)
+- [x] Implement project CRUD (create, edit, list, delete) with dashboard UI
 - [ ] Implement changelog post CRUD (create, edit, list, delete, publish/draft toggle) with rich markdown editor UI
 - [ ] Build public changelog page (per-project, beautiful, filterable by category, SEO-friendly)
 - [ ] Implement email subscriber system (subscribe form on public page, unsubscribe, manage subscribers in dashboard)
@@ -70,6 +70,19 @@ Phase: DEVELOPMENT
 - All tests passing (2/2)
 - Using `uv` for package management (system has Python 3.13.5)
 
+### Session 3 — AUTH & PROJECT CRUD
+- Implemented full user authentication: register, login, logout with JWT httponly cookies
+- Used bcrypt directly (passlib incompatible with bcrypt 5.x) for password hashing
+- Created auth dependency system (`get_current_user`, `get_optional_user`)
+- Built beautiful auth UI: split-screen login/register pages with branding panel (Tailwind CSS, Inter font)
+- Built responsive dashboard shell with sidebar navigation (mobile hamburger menu)
+- Implemented full project CRUD: create, edit, list, delete with slug auto-generation
+- Project ownership enforcement — users can only access their own projects
+- Dashboard shows stats cards (projects count, total posts, subscribers)
+- All templates use modern Tailwind CSS: cards, forms, empty states, error alerts, transitions
+- Wrote 34 tests covering auth flows, project CRUD, access control, and edge cases
+- All 34 tests passing with zero warnings
+
 ## Known Issues
 (none yet)
 
@@ -93,7 +106,11 @@ change-post/
 │       ├── database.py
 │       ├── api/
 │       │   ├── __init__.py
-│       │   └── health.py
+│       │   ├── health.py
+│       │   ├── auth.py
+│       │   ├── deps.py
+│       │   ├── dashboard.py
+│       │   └── projects.py
 │       ├── models/
 │       │   ├── __init__.py
 │       │   ├── user.py
@@ -102,12 +119,27 @@ change-post/
 │       │   ├── subscriber.py
 │       │   └── api_key.py
 │       ├── schemas/
-│       │   └── __init__.py
+│       │   ├── __init__.py
+│       │   ├── auth.py
+│       │   └── project.py
 │       ├── services/
-│       │   └── __init__.py
+│       │   ├── __init__.py
+│       │   ├── auth.py
+│       │   └── project.py
 │       ├── templates/
 │       │   ├── layouts/
+│       │   │   ├── base.html
+│       │   │   ├── auth.html
+│       │   │   └── dashboard.html
 │       │   ├── pages/
+│       │   │   ├── login.html
+│       │   │   ├── register.html
+│       │   │   ├── dashboard.html
+│       │   │   └── projects/
+│       │   │       ├── list.html
+│       │   │       ├── create.html
+│       │   │       ├── detail.html
+│       │   │       └── edit.html
 │       │   └── components/
 │       └── static/
 │           ├── css/
@@ -116,5 +148,7 @@ change-post/
 └── tests/
     ├── __init__.py
     ├── conftest.py
-    └── test_health.py
+    ├── test_health.py
+    ├── test_auth.py
+    └── test_projects.py
 ```

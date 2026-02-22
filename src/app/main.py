@@ -1,6 +1,7 @@
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
@@ -10,6 +11,9 @@ from app.database import init_db
 # Import models so they register with Base.metadata
 import app.models  # noqa: F401
 from app.api.health import router as health_router
+from app.api.auth import router as auth_router
+from app.api.dashboard import router as dashboard_router
+from app.api.projects import router as projects_router
 
 
 @asynccontextmanager
@@ -34,3 +38,11 @@ templates = Jinja2Templates(directory="src/app/templates")
 
 # Routers
 app.include_router(health_router)
+app.include_router(auth_router)
+app.include_router(dashboard_router)
+app.include_router(projects_router)
+
+
+@app.get("/")
+async def root(request: Request):
+    return RedirectResponse(url="/login", status_code=302)
