@@ -41,8 +41,8 @@ Phase: DEVELOPMENT
 - [x] Implement user authentication (register, login, logout, JWT middleware)
 - [x] Build auth UI (register page, login page, protected dashboard shell)
 - [x] Implement project CRUD (create, edit, list, delete) with dashboard UI
-- [ ] Implement changelog post CRUD (create, edit, list, delete, publish/draft toggle) with rich markdown editor UI
-- [ ] Build public changelog page (per-project, beautiful, filterable by category, SEO-friendly)
+- [x] Implement changelog post CRUD (create, edit, list, delete, publish/draft toggle) with rich markdown editor UI
+- [x] Build public changelog page (per-project, beautiful, filterable by category, SEO-friendly)
 - [ ] Implement email subscriber system (subscribe form on public page, unsubscribe, manage subscribers in dashboard)
 - [ ] Add email notification background job (notify subscribers on post publish)
 - [ ] Build embeddable widget (JS snippet + API endpoint for recent posts)
@@ -83,6 +83,21 @@ Phase: DEVELOPMENT
 - Wrote 34 tests covering auth flows, project CRUD, access control, and edge cases
 - All 34 tests passing with zero warnings
 
+### Session 4 — POST CRUD & PUBLIC CHANGELOG
+- Implemented full changelog post CRUD: create, edit, list, delete with markdown rendering
+- Rich markdown editor with toolbar (bold, italic, headings, lists, code, links) and live write/preview toggle
+- Posts support 4 categories: New Feature, Improvement, Bug Fix, Announcement — each with color-coded badges
+- Draft/publish workflow: save as draft or publish immediately, toggle publish/unpublish from detail page
+- Auto-generated post slugs from titles with uniqueness guarantee
+- Built beautiful public changelog page with timeline layout, per-project branding (accent color), and category filter
+- Public post detail pages with SEO meta tags (og:title, og:description, article:published_time)
+- View count tracking: each public post page visit increments the counter
+- Project detail page now shows live post stats (total, published, views) and recent post list
+- Markdown rendered server-side via python-markdown (fenced_code, tables, nl2br, sane_lists extensions)
+- All templates fully styled with Tailwind CSS: monospace editor, markdown body styles, responsive layout
+- 63 tests total (29 new): post CRUD, markdown rendering, publish toggle, public changelog, category filtering, view tracking, access control, SEO meta
+- All 63 tests passing
+
 ## Known Issues
 (none yet)
 
@@ -110,7 +125,9 @@ change-post/
 │       │   ├── auth.py
 │       │   ├── deps.py
 │       │   ├── dashboard.py
-│       │   └── projects.py
+│       │   ├── projects.py
+│       │   ├── posts.py
+│       │   └── changelog.py
 │       ├── models/
 │       │   ├── __init__.py
 │       │   ├── user.py
@@ -121,11 +138,13 @@ change-post/
 │       ├── schemas/
 │       │   ├── __init__.py
 │       │   ├── auth.py
-│       │   └── project.py
+│       │   ├── project.py
+│       │   └── post.py
 │       ├── services/
 │       │   ├── __init__.py
 │       │   ├── auth.py
-│       │   └── project.py
+│       │   ├── project.py
+│       │   └── post.py
 │       ├── templates/
 │       │   ├── layouts/
 │       │   │   ├── base.html
@@ -135,11 +154,19 @@ change-post/
 │       │   │   ├── login.html
 │       │   │   ├── register.html
 │       │   │   ├── dashboard.html
-│       │   │   └── projects/
-│       │   │       ├── list.html
-│       │   │       ├── create.html
-│       │   │       ├── detail.html
-│       │   │       └── edit.html
+│       │   │   ├── projects/
+│       │   │   │   ├── list.html
+│       │   │   │   ├── create.html
+│       │   │   │   ├── detail.html
+│       │   │   │   └── edit.html
+│       │   │   ├── posts/
+│       │   │   │   ├── list.html
+│       │   │   │   ├── create.html
+│       │   │   │   ├── detail.html
+│       │   │   │   └── edit.html
+│       │   │   └── changelog/
+│       │   │       ├── public.html
+│       │   │       └── post.html
 │       │   └── components/
 │       └── static/
 │           ├── css/
@@ -150,5 +177,7 @@ change-post/
     ├── conftest.py
     ├── test_health.py
     ├── test_auth.py
-    └── test_projects.py
+    ├── test_projects.py
+    ├── test_posts.py
+    └── test_changelog.py
 ```

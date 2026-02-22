@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.deps import get_current_user
 from app.database import get_db
 from app.models.user import User
+from app.services.post import get_posts_for_project, get_post_counts_for_project, CATEGORIES
 from app.services.project import (
     create_project,
     delete_project,
@@ -92,9 +93,17 @@ async def project_detail(
     project = await get_project_by_id(db, project_id)
     if not project or project.owner_id != user.id:
         raise HTTPException(status_code=404, detail="Project not found")
+    posts = await get_posts_for_project(db, project_id)
+    counts = await get_post_counts_for_project(db, project_id)
     return templates.TemplateResponse(
         request, "pages/projects/detail.html",
-        {"user": user, "project": project},
+        {
+            "user": user,
+            "project": project,
+            "posts": posts,
+            "counts": counts,
+            "categories": CATEGORIES,
+        },
     )
 
 

@@ -1,0 +1,96 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}{{ post.title }} — {{ project.name }} Changelog{% endblock %}
+
+{% block head %}
+<meta name="description" content="{{ post.body_markdown[:160]|e }}">
+<meta property="og:title" content="{{ post.title }}">
+<meta property="og:description" content="{{ post.body_markdown[:160]|e }}">
+<meta property="og:type" content="article">
+{% if post.published_at %}
+<meta property="article:published_time" content="{{ post.published_at.isoformat() }}">
+{% endif %}
+<style>
+    .markdown-body h1 { font-size: 1.5em; font-weight: 700; margin-bottom: 0.6em; margin-top: 1em; }
+    .markdown-body h2 { font-size: 1.25em; font-weight: 600; margin-bottom: 0.5em; margin-top: 1em; }
+    .markdown-body h3 { font-size: 1.1em; font-weight: 600; margin-bottom: 0.4em; margin-top: 0.75em; }
+    .markdown-body p { margin-bottom: 0.75em; line-height: 1.75; }
+    .markdown-body ul, .markdown-body ol { margin-bottom: 0.75em; padding-left: 1.5em; }
+    .markdown-body ul { list-style-type: disc; }
+    .markdown-body ol { list-style-type: decimal; }
+    .markdown-body li { margin-bottom: 0.3em; line-height: 1.7; }
+    .markdown-body code { background: #f3f4f6; padding: 0.15em 0.35em; border-radius: 0.25em; font-size: 0.875em; }
+    .markdown-body pre { background: #1f2937; color: #e5e7eb; padding: 1em; border-radius: 0.5em; overflow-x: auto; margin-bottom: 1em; }
+    .markdown-body pre code { background: none; padding: 0; color: inherit; font-size: 0.875em; }
+    .markdown-body blockquote { border-left: 3px solid #d1d5db; padding-left: 1em; color: #6b7280; margin-bottom: 0.75em; }
+    .markdown-body table { width: 100%; border-collapse: collapse; margin-bottom: 1em; }
+    .markdown-body th, .markdown-body td { border: 1px solid #e5e7eb; padding: 0.5em 0.75em; }
+    .markdown-body th { background: #f9fafb; font-weight: 600; }
+    .markdown-body a { color: var(--accent, #4f46e5); text-decoration: underline; }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="min-h-full bg-white" style="--accent: {{ project.accent_color }}">
+    <!-- Navbar -->
+    <header class="border-b border-gray-200">
+        <div class="max-w-3xl mx-auto px-6 py-4 flex items-center justify-between">
+            <a href="/changelog/{{ project.slug }}" class="flex items-center gap-3 hover:opacity-80 transition-opacity">
+                <div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background-color: {{ project.accent_color }}15;">
+                    <span class="text-lg font-bold" style="color: {{ project.accent_color }};">{{ project.name[0]|upper }}</span>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold text-gray-900">{{ project.name }}</h1>
+                    <p class="text-xs text-gray-500">Changelog</p>
+                </div>
+            </a>
+            <a href="/changelog/{{ project.slug }}" class="inline-flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                </svg>
+                All updates
+            </a>
+        </div>
+    </header>
+
+    <!-- Post content -->
+    <main class="max-w-3xl mx-auto px-6 py-10">
+        <article>
+            <!-- Meta -->
+            <div class="flex items-center gap-3 mb-4">
+                {% if post.published_at %}
+                <time class="text-sm text-gray-500" datetime="{{ post.published_at.isoformat() }}">
+                    {{ post.published_at.strftime('%B %d, %Y') }}
+                </time>
+                {% endif %}
+                {% set cat = categories.get(post.category, {"label": post.category, "color": "gray"}) %}
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                    {% if cat.color == 'emerald' %}bg-emerald-50 text-emerald-700
+                    {% elif cat.color == 'blue' %}bg-blue-50 text-blue-700
+                    {% elif cat.color == 'red' %}bg-red-50 text-red-700
+                    {% elif cat.color == 'purple' %}bg-purple-50 text-purple-700
+                    {% else %}bg-gray-100 text-gray-700{% endif %}
+                ">{{ cat.label }}</span>
+            </div>
+
+            <!-- Title -->
+            <h1 class="text-3xl font-bold text-gray-900 mb-8 leading-tight">{{ post.title }}</h1>
+
+            <!-- Body -->
+            <div class="markdown-body text-gray-700">
+                {{ post.body_html|safe }}
+            </div>
+        </article>
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-gray-100">
+        <div class="max-w-3xl mx-auto px-6 py-6 flex items-center justify-between">
+            <a href="/changelog/{{ project.slug }}" class="text-sm font-medium transition-colors hover:opacity-80" style="color: {{ project.accent_color }};">
+                &larr; Back to all updates
+            </a>
+            <p class="text-xs text-gray-400">Powered by <span class="font-medium text-gray-500">ChangePost</span></p>
+        </div>
+    </footer>
+</div>
+{% endblock %}

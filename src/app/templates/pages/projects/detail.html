@@ -39,11 +39,11 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
         <div class="bg-white rounded-xl border border-gray-200 p-5">
             <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Posts</p>
-            <p class="text-2xl font-bold text-gray-900">0</p>
+            <p class="text-2xl font-bold text-gray-900">{{ counts.total }}</p>
         </div>
         <div class="bg-white rounded-xl border border-gray-200 p-5">
             <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Published</p>
-            <p class="text-2xl font-bold text-gray-900">0</p>
+            <p class="text-2xl font-bold text-gray-900">{{ counts.published }}</p>
         </div>
         <div class="bg-white rounded-xl border border-gray-200 p-5">
             <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Subscribers</p>
@@ -51,7 +51,7 @@
         </div>
         <div class="bg-white rounded-xl border border-gray-200 p-5">
             <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Total Views</p>
-            <p class="text-2xl font-bold text-gray-900">0</p>
+            <p class="text-2xl font-bold text-gray-900">{{ counts.total_views }}</p>
         </div>
     </div>
 
@@ -98,17 +98,68 @@
         </div>
     </div>
 
-    <!-- Posts section (placeholder for now - will be built with post CRUD) -->
+    <!-- Posts section -->
     <div class="bg-white rounded-xl border border-gray-200">
         <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
             <h2 class="text-lg font-semibold text-gray-900">Changelog Posts</h2>
-            <a href="/projects/{{ project.id }}/posts/new" class="inline-flex items-center gap-2 bg-brand-600 hover:bg-brand-700 text-white font-medium py-2 px-4 rounded-lg text-sm transition-colors">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            <div class="flex items-center gap-2">
+                {% if posts %}
+                <a href="/projects/{{ project.id }}/posts" class="text-sm text-brand-600 hover:text-brand-700 font-medium transition-colors">View all</a>
+                {% endif %}
+                <a href="/projects/{{ project.id }}/posts/new" class="inline-flex items-center gap-2 bg-brand-600 hover:bg-brand-700 text-white font-medium py-2 px-4 rounded-lg text-sm transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    New Post
+                </a>
+            </div>
+        </div>
+
+        {% if posts %}
+        <div class="divide-y divide-gray-100">
+            {% for post in posts[:5] %}
+            <a href="/projects/{{ project.id }}/posts/{{ post.id }}" class="flex items-center gap-4 px-6 py-4 hover:bg-gray-50 transition-colors group">
+                <div class="shrink-0">
+                    {% if post.is_published %}
+                    <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                        Live
+                    </span>
+                    {% else %}
+                    <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                        <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
+                        Draft
+                    </span>
+                    {% endif %}
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-semibold text-gray-900 group-hover:text-brand-600 transition-colors truncate">{{ post.title }}</p>
+                    <div class="flex items-center gap-3 mt-0.5">
+                        {% set cat = categories.get(post.category, {"label": post.category, "color": "gray"}) %}
+                        <span class="text-xs
+                            {% if cat.color == 'emerald' %}text-emerald-600
+                            {% elif cat.color == 'blue' %}text-blue-600
+                            {% elif cat.color == 'red' %}text-red-600
+                            {% elif cat.color == 'purple' %}text-purple-600
+                            {% else %}text-gray-600{% endif %}
+                            font-medium">{{ cat.label }}</span>
+                        <span class="text-xs text-gray-400">{{ (post.published_at or post.created_at).strftime('%b %d, %Y') }}</span>
+                    </div>
+                </div>
+                <svg class="w-5 h-5 text-gray-300 group-hover:text-gray-400 transition-colors shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                 </svg>
-                New Post
+            </a>
+            {% endfor %}
+        </div>
+        {% if posts|length > 5 %}
+        <div class="px-6 py-3 border-t border-gray-100 text-center">
+            <a href="/projects/{{ project.id }}/posts" class="text-sm text-brand-600 hover:text-brand-700 font-medium transition-colors">
+                View all {{ posts|length }} posts &rarr;
             </a>
         </div>
+        {% endif %}
+        {% else %}
         <div class="px-6 py-16 text-center">
             <div class="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -124,6 +175,7 @@
                 Write your first post
             </a>
         </div>
+        {% endif %}
     </div>
 
     <!-- Danger zone -->

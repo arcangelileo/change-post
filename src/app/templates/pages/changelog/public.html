@@ -1,0 +1,164 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Changelog — {{ project.name }}{% endblock %}
+
+{% block head %}
+<style>
+    .markdown-body h1 { font-size: 1.35em; font-weight: 700; margin-bottom: 0.5em; margin-top: 0.75em; }
+    .markdown-body h2 { font-size: 1.15em; font-weight: 600; margin-bottom: 0.5em; margin-top: 0.75em; }
+    .markdown-body h3 { font-size: 1.05em; font-weight: 600; margin-bottom: 0.4em; margin-top: 0.5em; }
+    .markdown-body p { margin-bottom: 0.6em; line-height: 1.7; }
+    .markdown-body ul, .markdown-body ol { margin-bottom: 0.6em; padding-left: 1.5em; }
+    .markdown-body ul { list-style-type: disc; }
+    .markdown-body ol { list-style-type: decimal; }
+    .markdown-body li { margin-bottom: 0.2em; line-height: 1.6; }
+    .markdown-body code { background: #f3f4f6; padding: 0.1em 0.3em; border-radius: 0.25em; font-size: 0.875em; }
+    .markdown-body pre { background: #1f2937; color: #e5e7eb; padding: 1em; border-radius: 0.5em; overflow-x: auto; margin-bottom: 0.75em; }
+    .markdown-body pre code { background: none; padding: 0; color: inherit; font-size: 0.875em; }
+    .markdown-body blockquote { border-left: 3px solid #d1d5db; padding-left: 1em; color: #6b7280; margin-bottom: 0.6em; }
+    .markdown-body table { width: 100%; border-collapse: collapse; margin-bottom: 0.75em; }
+    .markdown-body th, .markdown-body td { border: 1px solid #e5e7eb; padding: 0.5em 0.75em; }
+    .markdown-body th { background: #f9fafb; font-weight: 600; }
+    .markdown-body a { color: var(--accent, #4f46e5); text-decoration: underline; }
+
+    .timeline-line { position: absolute; left: 19px; top: 2.5rem; bottom: 0; width: 2px; }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="min-h-full" style="--accent: {{ project.accent_color }}">
+    <!-- Navbar -->
+    <header class="bg-white border-b border-gray-200">
+        <div class="max-w-3xl mx-auto px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background-color: {{ project.accent_color }}15;">
+                    <span class="text-lg font-bold" style="color: {{ project.accent_color }};">{{ project.name[0]|upper }}</span>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold text-gray-900">{{ project.name }}</h1>
+                    <p class="text-xs text-gray-500">Changelog</p>
+                </div>
+            </div>
+            {% if project.website_url %}
+            <a href="{{ project.website_url }}" target="_blank"
+               class="inline-flex items-center gap-1.5 text-sm font-medium transition-colors hover:opacity-80" style="color: {{ project.accent_color }};">
+                Visit site
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                </svg>
+            </a>
+            {% endif %}
+        </div>
+    </header>
+
+    <!-- Category filter -->
+    <div class="bg-white border-b border-gray-100">
+        <div class="max-w-3xl mx-auto px-6">
+            <nav class="flex items-center gap-1 -mb-px overflow-x-auto py-3">
+                <a href="/changelog/{{ project.slug }}"
+                   class="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap
+                   {% if not active_category %}text-white{% else %}text-gray-500 hover:text-gray-700 hover:bg-gray-100{% endif %}"
+                   {% if not active_category %}style="background-color: {{ project.accent_color }};"{% endif %}>
+                    All Updates
+                </a>
+                {% for key, cat in categories.items() %}
+                <a href="/changelog/{{ project.slug }}?category={{ key }}"
+                   class="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap
+                   {% if active_category == key %}text-white{% else %}text-gray-500 hover:text-gray-700 hover:bg-gray-100{% endif %}"
+                   {% if active_category == key %}style="background-color: {{ project.accent_color }};"{% endif %}>
+                    {{ cat.label }}
+                </a>
+                {% endfor %}
+            </nav>
+        </div>
+    </div>
+
+    <!-- Posts timeline -->
+    <main class="max-w-3xl mx-auto px-6 py-10">
+        {% if project.description %}
+        <p class="text-gray-500 text-sm mb-10 max-w-lg">{{ project.description }}</p>
+        {% endif %}
+
+        {% if posts %}
+        <div class="space-y-0">
+            {% for post in posts %}
+            <article class="relative pl-12 pb-10 {% if not loop.last %}border-l-2 border-gray-100 ml-[19px]{% endif %}">
+                <!-- Timeline dot -->
+                <div class="absolute left-0 top-1 w-10 h-10 rounded-full flex items-center justify-center bg-white border-2 -ml-[1px]"
+                     style="border-color: {{ project.accent_color }};">
+                    {% if post.category == 'new_feature' %}
+                    <svg class="w-4 h-4" style="color: {{ project.accent_color }};" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    {% elif post.category == 'bugfix' %}
+                    <svg class="w-4 h-4" style="color: {{ project.accent_color }};" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    {% elif post.category == 'announcement' %}
+                    <svg class="w-4 h-4" style="color: {{ project.accent_color }};" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/>
+                    </svg>
+                    {% else %}
+                    <svg class="w-4 h-4" style="color: {{ project.accent_color }};" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
+                    {% endif %}
+                </div>
+
+                <!-- Date -->
+                <div class="flex items-center gap-3 mb-3">
+                    <time class="text-xs font-medium text-gray-400 uppercase tracking-wide" datetime="{{ post.published_at.isoformat() if post.published_at else '' }}">
+                        {{ post.published_at.strftime('%B %d, %Y') if post.published_at else '' }}
+                    </time>
+                    {% set cat = categories.get(post.category, {"label": post.category, "color": "gray"}) %}
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium
+                        {% if cat.color == 'emerald' %}bg-emerald-50 text-emerald-700
+                        {% elif cat.color == 'blue' %}bg-blue-50 text-blue-700
+                        {% elif cat.color == 'red' %}bg-red-50 text-red-700
+                        {% elif cat.color == 'purple' %}bg-purple-50 text-purple-700
+                        {% else %}bg-gray-100 text-gray-700{% endif %}
+                    ">{{ cat.label }}</span>
+                </div>
+
+                <!-- Title -->
+                <h2 class="text-lg font-bold text-gray-900 mb-3">
+                    <a href="/changelog/{{ project.slug }}/{{ post.slug }}" class="hover:underline" style="text-decoration-color: {{ project.accent_color }}30;">
+                        {{ post.title }}
+                    </a>
+                </h2>
+
+                <!-- Content -->
+                <div class="markdown-body text-sm text-gray-700">
+                    {{ post.body_html|safe }}
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-20">
+            <div class="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4" style="background-color: {{ project.accent_color }}10;">
+                <svg class="w-8 h-8" style="color: {{ project.accent_color }}40;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">No updates yet</h3>
+            <p class="text-sm text-gray-500 max-w-sm mx-auto">
+                {% if active_category %}
+                No {{ categories[active_category].label|lower }} updates have been posted yet.
+                <a href="/changelog/{{ project.slug }}" class="font-medium hover:underline" style="color: {{ project.accent_color }};">View all updates</a>
+                {% else %}
+                Check back soon for product updates and announcements.
+                {% endif %}
+            </p>
+        </div>
+        {% endif %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-gray-100 bg-white">
+        <div class="max-w-3xl mx-auto px-6 py-6 text-center">
+            <p class="text-xs text-gray-400">Powered by <span class="font-medium text-gray-500">ChangePost</span></p>
+        </div>
+    </footer>
+</div>
+{% endblock %}

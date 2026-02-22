@@ -1,0 +1,229 @@
+{% extends "layouts/dashboard.html" %}
+{% set active_page = "projects" %}
+
+{% block title %}New Post — {{ project.name }} — ChangePost{% endblock %}
+
+{% block head %}
+<style>
+    .editor-textarea {
+        min-height: 300px;
+        font-family: 'SF Mono', 'Fira Code', 'Fira Mono', Menlo, monospace;
+        font-size: 14px;
+        line-height: 1.6;
+        tab-size: 4;
+    }
+    .markdown-body h1 { font-size: 1.5em; font-weight: 700; margin-bottom: 0.5em; }
+    .markdown-body h2 { font-size: 1.25em; font-weight: 600; margin-bottom: 0.5em; }
+    .markdown-body h3 { font-size: 1.1em; font-weight: 600; margin-bottom: 0.5em; }
+    .markdown-body p { margin-bottom: 0.75em; }
+    .markdown-body ul, .markdown-body ol { margin-bottom: 0.75em; padding-left: 1.5em; }
+    .markdown-body ul { list-style-type: disc; }
+    .markdown-body ol { list-style-type: decimal; }
+    .markdown-body code { background: #f3f4f6; padding: 0.1em 0.3em; border-radius: 0.25em; font-size: 0.9em; }
+    .markdown-body pre { background: #1f2937; color: #e5e7eb; padding: 1em; border-radius: 0.5em; overflow-x: auto; margin-bottom: 0.75em; }
+    .markdown-body pre code { background: none; padding: 0; color: inherit; }
+    .markdown-body blockquote { border-left: 3px solid #d1d5db; padding-left: 1em; color: #6b7280; margin-bottom: 0.75em; }
+    .markdown-body table { width: 100%; border-collapse: collapse; margin-bottom: 0.75em; }
+    .markdown-body th, .markdown-body td { border: 1px solid #e5e7eb; padding: 0.5em 0.75em; text-align: left; }
+    .markdown-body th { background: #f9fafb; font-weight: 600; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="fade-in max-w-4xl">
+    <!-- Header -->
+    <div class="mb-8">
+        <a href="/projects/{{ project.id }}/posts" class="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 transition-colors mb-4">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+            </svg>
+            Back to posts
+        </a>
+        <h1 class="text-2xl font-bold text-gray-900">New Post</h1>
+        <p class="text-gray-500 mt-1">Write a changelog update for {{ project.name }}</p>
+    </div>
+
+    {% if errors %}
+    <div class="mb-6 bg-red-50 border border-red-200 rounded-xl p-4">
+        <div class="flex items-start gap-3">
+            <svg class="w-5 h-5 text-red-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <div>
+                {% for error in errors %}
+                <p class="text-sm text-red-700">{{ error }}</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <form method="POST" action="/projects/{{ project.id }}/posts/new">
+        <div class="bg-white rounded-xl border border-gray-200 p-6 space-y-6">
+            <!-- Title -->
+            <div>
+                <label for="title" class="block text-sm font-medium text-gray-700 mb-1.5">Title</label>
+                <input type="text" id="title" name="title" value="{{ title|default('', true) }}" required
+                       class="w-full px-4 py-2.5 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-shadow placeholder-gray-400"
+                       placeholder="What's new in your product?">
+            </div>
+
+            <!-- Category -->
+            <div>
+                <label for="category" class="block text-sm font-medium text-gray-700 mb-1.5">Category</label>
+                <select id="category" name="category"
+                        class="w-full px-4 py-2.5 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-shadow bg-white">
+                    {% for key, cat in categories.items() %}
+                    <option value="{{ key }}" {% if (category|default('improvement', true)) == key %}selected{% endif %}>{{ cat.label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Markdown editor with preview -->
+            <div>
+                <div class="flex items-center justify-between mb-1.5">
+                    <label class="block text-sm font-medium text-gray-700">Content</label>
+                    <div class="flex items-center gap-1 bg-gray-100 rounded-lg p-0.5">
+                        <button type="button" id="tab-write" onclick="showTab('write')"
+                                class="px-3 py-1 text-xs font-medium rounded-md bg-white text-gray-900 shadow-sm transition-all">Write</button>
+                        <button type="button" id="tab-preview" onclick="showTab('preview')"
+                                class="px-3 py-1 text-xs font-medium rounded-md text-gray-500 hover:text-gray-700 transition-all">Preview</button>
+                    </div>
+                </div>
+
+                <!-- Write pane -->
+                <div id="pane-write">
+                    <!-- Toolbar -->
+                    <div class="flex items-center gap-1 px-3 py-2 bg-gray-50 border border-b-0 border-gray-300 rounded-t-xl">
+                        <button type="button" onclick="insertMarkdown('**', '**')" title="Bold"
+                                class="p-1.5 rounded hover:bg-gray-200 text-gray-600 transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M6 4h8a4 4 0 014 4 4 4 0 01-4 4H6z"/><path d="M6 12h9a4 4 0 014 4 4 4 0 01-4 4H6z"/></svg>
+                        </button>
+                        <button type="button" onclick="insertMarkdown('*', '*')" title="Italic"
+                                class="p-1.5 rounded hover:bg-gray-200 text-gray-600 transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10 4h4m-2 0v16m-4 0h8"/></svg>
+                        </button>
+                        <div class="w-px h-5 bg-gray-300 mx-1"></div>
+                        <button type="button" onclick="insertMarkdown('## ', '')" title="Heading"
+                                class="p-1.5 rounded hover:bg-gray-200 text-gray-600 transition-colors">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M3 3h2v6h6V3h2v14h-2v-6H5v6H3V3z"/></svg>
+                        </button>
+                        <button type="button" onclick="insertMarkdown('- ', '')" title="List"
+                                class="p-1.5 rounded hover:bg-gray-200 text-gray-600 transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
+                        </button>
+                        <button type="button" onclick="insertMarkdown('`', '`')" title="Inline code"
+                                class="p-1.5 rounded hover:bg-gray-200 text-gray-600 transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M16 18l6-6-6-6M8 6l-6 6 6 6"/></svg>
+                        </button>
+                        <button type="button" onclick="insertMarkdown('```\n', '\n```')" title="Code block"
+                                class="p-1.5 rounded hover:bg-gray-200 text-gray-600 transition-colors text-xs font-mono font-bold">
+                            { }
+                        </button>
+                        <button type="button" onclick="insertMarkdown('[', '](url)')" title="Link"
+                                class="p-1.5 rounded hover:bg-gray-200 text-gray-600 transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+                        </button>
+                    </div>
+                    <textarea id="body_markdown" name="body_markdown"
+                              class="editor-textarea w-full px-4 py-3 border border-gray-300 rounded-b-xl text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-shadow placeholder-gray-400 resize-y"
+                              placeholder="Write your update using Markdown...&#10;&#10;## What's changed&#10;&#10;- Added new feature X&#10;- Fixed bug with Y&#10;- Improved performance of Z">{{ body_markdown|default('', true) }}</textarea>
+                </div>
+
+                <!-- Preview pane -->
+                <div id="pane-preview" class="hidden">
+                    <div id="preview-content" class="markdown-body min-h-[300px] px-4 py-3 border border-gray-300 rounded-xl text-sm bg-white">
+                        <p class="text-gray-400 italic">Preview will appear here...</p>
+                    </div>
+                </div>
+
+                <p class="mt-1.5 text-xs text-gray-400">Supports Markdown: **bold**, *italic*, ## headings, - lists, `code`, ```code blocks```, [links](url)</p>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex items-center gap-3 mt-6">
+            <button type="submit" name="action" value="draft"
+                    class="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium py-2.5 px-6 rounded-lg text-sm transition-colors">
+                Save as Draft
+            </button>
+            <button type="submit" name="action" value="publish"
+                    class="bg-brand-600 hover:bg-brand-700 text-white font-medium py-2.5 px-6 rounded-lg text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 shadow-sm">
+                Publish Now
+            </button>
+            <a href="/projects/{{ project.id }}/posts" class="text-sm text-gray-500 hover:text-gray-700 transition-colors ml-2">Cancel</a>
+        </div>
+    </form>
+</div>
+
+<script>
+function showTab(tab) {
+    const writePane = document.getElementById('pane-write');
+    const previewPane = document.getElementById('pane-preview');
+    const writeTab = document.getElementById('tab-write');
+    const previewTab = document.getElementById('tab-preview');
+
+    if (tab === 'write') {
+        writePane.classList.remove('hidden');
+        previewPane.classList.add('hidden');
+        writeTab.classList.add('bg-white', 'text-gray-900', 'shadow-sm');
+        writeTab.classList.remove('text-gray-500');
+        previewTab.classList.remove('bg-white', 'text-gray-900', 'shadow-sm');
+        previewTab.classList.add('text-gray-500');
+    } else {
+        writePane.classList.add('hidden');
+        previewPane.classList.remove('hidden');
+        previewTab.classList.add('bg-white', 'text-gray-900', 'shadow-sm');
+        previewTab.classList.remove('text-gray-500');
+        writeTab.classList.remove('bg-white', 'text-gray-900', 'shadow-sm');
+        writeTab.classList.add('text-gray-500');
+
+        // Render preview
+        const md = document.getElementById('body_markdown').value;
+        const preview = document.getElementById('preview-content');
+        if (md.trim()) {
+            // Simple client-side markdown rendering for preview
+            let html = md
+                .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+                .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+                .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+                .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.+?)\*/g, '<em>$1</em>')
+                .replace(/`([^`]+)`/g, '<code>$1</code>')
+                .replace(/^- (.+)$/gm, '<li>$1</li>')
+                .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
+                .replace(/\n\n/g, '</p><p>')
+                .replace(/\n/g, '<br>');
+            preview.innerHTML = '<p>' + html + '</p>';
+        } else {
+            preview.innerHTML = '<p class="text-gray-400 italic">Nothing to preview yet...</p>';
+        }
+    }
+}
+
+function insertMarkdown(before, after) {
+    const textarea = document.getElementById('body_markdown');
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selected = textarea.value.substring(start, end);
+    const replacement = before + (selected || 'text') + after;
+    textarea.value = textarea.value.substring(0, start) + replacement + textarea.value.substring(end);
+    textarea.focus();
+    const newPos = start + before.length + (selected ? selected.length : 4);
+    textarea.setSelectionRange(
+        selected ? start : start + before.length,
+        selected ? start + replacement.length : start + before.length + 4
+    );
+}
+
+// Tab key support in textarea
+document.getElementById('body_markdown').addEventListener('keydown', function(e) {
+    if (e.key === 'Tab') {
+        e.preventDefault();
+        const start = this.selectionStart;
+        this.value = this.value.substring(0, start) + '    ' + this.value.substring(this.selectionEnd);
+        this.selectionStart = this.selectionEnd = start + 4;
+    }
+});
+</script>
+{% endblock %}
