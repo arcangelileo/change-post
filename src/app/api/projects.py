@@ -14,6 +14,7 @@ from app.services.project import (
     get_projects_for_user,
     update_project,
 )
+from app.services.subscriber import get_subscriber_count_for_project
 
 router = APIRouter(prefix="/projects", tags=["projects"])
 templates = Jinja2Templates(directory="src/app/templates")
@@ -95,6 +96,7 @@ async def project_detail(
         raise HTTPException(status_code=404, detail="Project not found")
     posts = await get_posts_for_project(db, project_id)
     counts = await get_post_counts_for_project(db, project_id)
+    subscriber_count = await get_subscriber_count_for_project(db, project_id)
     return templates.TemplateResponse(
         request, "pages/projects/detail.html",
         {
@@ -102,6 +104,7 @@ async def project_detail(
             "project": project,
             "posts": posts,
             "counts": counts,
+            "subscriber_count": subscriber_count,
             "categories": CATEGORIES,
         },
     )

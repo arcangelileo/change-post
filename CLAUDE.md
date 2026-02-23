@@ -43,12 +43,12 @@ Phase: DEVELOPMENT
 - [x] Implement project CRUD (create, edit, list, delete) with dashboard UI
 - [x] Implement changelog post CRUD (create, edit, list, delete, publish/draft toggle) with rich markdown editor UI
 - [x] Build public changelog page (per-project, beautiful, filterable by category, SEO-friendly)
-- [ ] Implement email subscriber system (subscribe form on public page, unsubscribe, manage subscribers in dashboard)
-- [ ] Add email notification background job (notify subscribers on post publish)
-- [ ] Build embeddable widget (JS snippet + API endpoint for recent posts)
-- [ ] Add post view tracking and analytics dashboard
-- [ ] Implement API key management and programmatic post creation API
-- [ ] Write comprehensive tests (auth, posts, public pages, API, subscriptions)
+- [x] Implement email subscriber system (subscribe form on public page, unsubscribe, manage subscribers in dashboard)
+- [x] Add email notification background job (notify subscribers on post publish)
+- [x] Build embeddable widget (JS snippet + API endpoint for recent posts)
+- [x] Add post view tracking and analytics dashboard
+- [x] Implement API key management and programmatic post creation API
+- [x] Write comprehensive tests (auth, posts, public pages, API, subscriptions)
 - [ ] Write Dockerfile and docker-compose.yml
 - [ ] Write README with setup and deploy instructions
 
@@ -98,6 +98,18 @@ Phase: DEVELOPMENT
 - 63 tests total (29 new): post CRUD, markdown rendering, publish toggle, public changelog, category filtering, view tracking, access control, SEO meta
 - All 63 tests passing
 
+### Session 5 — SUBSCRIBERS, WIDGET, ANALYTICS, API KEYS, EMAIL NOTIFICATIONS
+- **Email subscriber system**: Subscribe form on public changelog page with email validation, unsubscribe via unique token, dashboard subscriber management (list, delete), duplicate prevention with anti-enumeration (always shows success)
+- **Email notifications**: SMTP-based email sending with beautiful HTML templates, background task triggered on post publish (both create+publish and toggle-publish), configurable via environment variables, graceful fallback when SMTP not configured
+- **Embeddable widget**: Self-contained vanilla JS widget (`/api/widget/{slug}/embed.js`) with floating bell button, popup panel showing recent posts, red badge counter for new-since-last-viewed (localStorage), mobile responsive, CORS-enabled JSON API endpoint (`/api/widget/{slug}/posts`)
+- **Analytics dashboard**: Stats overview (total views, published posts, subscribers, avg views/post), views-per-post horizontal bar chart with project accent color, category breakdown bars, top posts table with ranking, all styled with Tailwind CSS
+- **API key management**: Create/revoke API keys per project, SHA-256 hashed storage, key prefix display (first 12 chars), copy-to-clipboard on creation, last-used tracking, inline API documentation with curl examples
+- **Programmatic API** (`/api/v1/`): Bearer token auth, `GET /posts` (with published filter), `POST /posts` (create with validation), `GET /posts/{id}`, proper error responses (401/404/422)
+- **Project detail enhancements**: Quick action cards (Analytics, Subscribers, API Keys, Widget) with hover effects, live subscriber count, widget embed page with installation instructions and feature list
+- **Public changelog enhancement**: Subscribe section with email form at bottom of public page ("Stay in the loop")
+- 115 tests total (52 new): subscribers (13), widget (11), analytics (6), API keys (8), programmatic API (14), all existing tests still passing
+- All 115 tests passing
+
 ## Known Issues
 (none yet)
 
@@ -127,7 +139,13 @@ change-post/
 │       │   ├── dashboard.py
 │       │   ├── projects.py
 │       │   ├── posts.py
-│       │   └── changelog.py
+│       │   ├── changelog.py
+│       │   ├── subscribers.py
+│       │   ├── widget.py
+│       │   ├── widget_page.py
+│       │   ├── analytics.py
+│       │   ├── api_keys.py
+│       │   └── programmatic.py
 │       ├── models/
 │       │   ├── __init__.py
 │       │   ├── user.py
@@ -144,7 +162,10 @@ change-post/
 │       │   ├── __init__.py
 │       │   ├── auth.py
 │       │   ├── project.py
-│       │   └── post.py
+│       │   ├── post.py
+│       │   ├── subscriber.py
+│       │   ├── api_key.py
+│       │   └── email.py
 │       ├── templates/
 │       │   ├── layouts/
 │       │   │   ├── base.html
@@ -164,9 +185,19 @@ change-post/
 │       │   │   │   ├── create.html
 │       │   │   │   ├── detail.html
 │       │   │   │   └── edit.html
-│       │   │   └── changelog/
-│       │   │       ├── public.html
-│       │   │       └── post.html
+│       │   │   ├── changelog/
+│       │   │   │   ├── public.html
+│       │   │   │   ├── post.html
+│       │   │   │   ├── subscribe_result.html
+│       │   │   │   └── unsubscribe.html
+│       │   │   ├── subscribers/
+│       │   │   │   └── list.html
+│       │   │   ├── analytics/
+│       │   │   │   └── dashboard.html
+│       │   │   ├── api_keys/
+│       │   │   │   └── list.html
+│       │   │   └── widget/
+│       │   │       └── embed.html
 │       │   └── components/
 │       └── static/
 │           ├── css/
@@ -179,5 +210,10 @@ change-post/
     ├── test_auth.py
     ├── test_projects.py
     ├── test_posts.py
-    └── test_changelog.py
+    ├── test_changelog.py
+    ├── test_subscribers.py
+    ├── test_widget.py
+    ├── test_analytics.py
+    ├── test_api_keys.py
+    └── test_programmatic_api.py
 ```

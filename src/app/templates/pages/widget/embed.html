@@ -1,0 +1,144 @@
+{% extends "layouts/dashboard.html" %}
+{% set active_page = "projects" %}
+
+{% block title %}Widget — {{ project.name }} — ChangePost{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <!-- Header -->
+    <div class="flex items-start justify-between mb-8">
+        <div>
+            <a href="/projects/{{ project.id }}" class="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 transition-colors mb-4">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                </svg>
+                Back to {{ project.name }}
+            </a>
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-xl flex items-center justify-center bg-purple-50">
+                    <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900">Embeddable Widget</h1>
+                    <p class="text-sm text-gray-500 mt-0.5">Add a "What's New" notification to your app</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Embed code -->
+    <div class="bg-white rounded-xl border border-gray-200 p-6 mb-6">
+        <h3 class="text-base font-semibold text-gray-900 mb-2">Installation</h3>
+        <p class="text-sm text-gray-500 mb-4">Add this script tag to your website's HTML, just before the closing <code class="bg-gray-100 px-1.5 py-0.5 rounded text-xs">&lt;/body&gt;</code> tag.</p>
+        <div class="relative">
+            <pre id="embed-code" class="bg-gray-900 text-gray-100 rounded-lg p-4 overflow-x-auto text-sm"><code>&lt;script src="{{ base_url }}/api/widget/{{ project.slug }}/embed.js" async&gt;&lt;/script&gt;</code></pre>
+            <button onclick="navigator.clipboard.writeText('<script src=&quot;{{ base_url }}/api/widget/{{ project.slug }}/embed.js&quot; async><\/script>');this.innerHTML='Copied!';"
+                    class="absolute top-3 right-3 bg-gray-700 hover:bg-gray-600 text-gray-200 text-xs font-medium px-3 py-1.5 rounded-md transition-colors">
+                Copy
+            </button>
+        </div>
+    </div>
+
+    <!-- Preview -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <div class="bg-white rounded-xl border border-gray-200 p-6">
+            <h3 class="text-base font-semibold text-gray-900 mb-4">What it looks like</h3>
+            <div class="space-y-4 text-sm text-gray-600">
+                <div class="flex items-start gap-3">
+                    <div class="w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-white" style="background-color: {{ project.accent_color }};">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="font-medium text-gray-900">Floating bell button</p>
+                        <p>A notification bell appears in the bottom-right corner of your page. A red badge shows the count of new updates.</p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-3">
+                    <div class="w-8 h-8 bg-white rounded-lg border border-gray-200 flex items-center justify-center shrink-0 shadow-sm">
+                        <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="font-medium text-gray-900">Popup panel</p>
+                        <p>Clicking the bell opens a panel showing your latest published changelog posts with titles, categories, and excerpts.</p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-3">
+                    <div class="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center shrink-0">
+                        <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="font-medium text-gray-900">Links to your changelog</p>
+                        <p>Each post links to its full detail page on your public changelog.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl border border-gray-200 p-6">
+            <h3 class="text-base font-semibold text-gray-900 mb-4">Features</h3>
+            <ul class="space-y-3 text-sm text-gray-600">
+                <li class="flex items-center gap-2">
+                    <svg class="w-4 h-4 text-emerald-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    <span>Uses your project's brand color (<span class="inline-block w-3 h-3 rounded-full align-middle" style="background-color: {{ project.accent_color }};"></span> {{ project.accent_color }})</span>
+                </li>
+                <li class="flex items-center gap-2">
+                    <svg class="w-4 h-4 text-emerald-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    Tracks "new since last viewed" with localStorage
+                </li>
+                <li class="flex items-center gap-2">
+                    <svg class="w-4 h-4 text-emerald-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    Lightweight vanilla JS — no dependencies
+                </li>
+                <li class="flex items-center gap-2">
+                    <svg class="w-4 h-4 text-emerald-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    Mobile responsive — full-width on small screens
+                </li>
+                <li class="flex items-center gap-2">
+                    <svg class="w-4 h-4 text-emerald-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    Self-contained — all styles inline, no CSS conflicts
+                </li>
+                <li class="flex items-center gap-2">
+                    <svg class="w-4 h-4 text-emerald-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    Shows last 5 published posts with category badges
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- JSON API -->
+    <div class="bg-white rounded-xl border border-gray-200 p-6">
+        <h3 class="text-base font-semibold text-gray-900 mb-2">JSON API</h3>
+        <p class="text-sm text-gray-500 mb-4">Prefer building your own widget? Use the JSON API to fetch recent posts.</p>
+        <pre class="bg-gray-900 text-gray-100 rounded-lg p-4 overflow-x-auto text-xs"><code>GET {{ base_url }}/api/widget/{{ project.slug }}/posts?limit=5
+
+# Returns JSON:
+{
+  "project": { "name": "{{ project.name }}", "slug": "{{ project.slug }}", ... },
+  "posts": [
+    { "title": "...", "category": "new_feature", "published_at": "...", "excerpt": "...", "url": "..." },
+    ...
+  ]
+}</code></pre>
+    </div>
+</div>
+{% endblock %}

@@ -47,12 +47,52 @@
         </div>
         <div class="bg-white rounded-xl border border-gray-200 p-5">
             <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Subscribers</p>
-            <p class="text-2xl font-bold text-gray-900">0</p>
+            <p class="text-2xl font-bold text-gray-900">{{ subscriber_count }}</p>
         </div>
         <div class="bg-white rounded-xl border border-gray-200 p-5">
             <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Total Views</p>
             <p class="text-2xl font-bold text-gray-900">{{ counts.total_views }}</p>
         </div>
+    </div>
+
+    <!-- Quick actions -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
+        <a href="/projects/{{ project.id }}/analytics" class="bg-white rounded-xl border border-gray-200 p-4 hover:border-blue-300 hover:bg-blue-50/50 transition-all group">
+            <div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center mb-2 group-hover:bg-blue-100 transition-colors">
+                <svg class="w-4.5 h-4.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                </svg>
+            </div>
+            <p class="text-sm font-semibold text-gray-900">Analytics</p>
+            <p class="text-xs text-gray-500">View performance</p>
+        </a>
+        <a href="/projects/{{ project.id }}/subscribers" class="bg-white rounded-xl border border-gray-200 p-4 hover:border-amber-300 hover:bg-amber-50/50 transition-all group">
+            <div class="w-9 h-9 bg-amber-50 rounded-lg flex items-center justify-center mb-2 group-hover:bg-amber-100 transition-colors">
+                <svg class="w-4.5 h-4.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                </svg>
+            </div>
+            <p class="text-sm font-semibold text-gray-900">Subscribers</p>
+            <p class="text-xs text-gray-500">{{ subscriber_count }} subscribed</p>
+        </a>
+        <a href="/projects/{{ project.id }}/api-keys" class="bg-white rounded-xl border border-gray-200 p-4 hover:border-emerald-300 hover:bg-emerald-50/50 transition-all group">
+            <div class="w-9 h-9 bg-emerald-50 rounded-lg flex items-center justify-center mb-2 group-hover:bg-emerald-100 transition-colors">
+                <svg class="w-4.5 h-4.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
+                </svg>
+            </div>
+            <p class="text-sm font-semibold text-gray-900">API Keys</p>
+            <p class="text-xs text-gray-500">Manage access</p>
+        </a>
+        <a href="/projects/{{ project.id }}/widget" class="bg-white rounded-xl border border-gray-200 p-4 hover:border-purple-300 hover:bg-purple-50/50 transition-all group">
+            <div class="w-9 h-9 bg-purple-50 rounded-lg flex items-center justify-center mb-2 group-hover:bg-purple-100 transition-colors">
+                <svg class="w-4.5 h-4.5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+                </svg>
+            </div>
+            <p class="text-sm font-semibold text-gray-900">Widget</p>
+            <p class="text-xs text-gray-500">Embed snippet</p>
+        </a>
     </div>
 
     <!-- Quick links -->

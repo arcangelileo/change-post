@@ -154,6 +154,32 @@
         {% endif %}
     </main>
 
+    <!-- Subscribe section -->
+    <section class="bg-gray-50 border-t border-gray-200">
+        <div class="max-w-3xl mx-auto px-6 py-12">
+            <div class="max-w-md mx-auto text-center">
+                <div class="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-4" style="background-color: {{ project.accent_color }}15;">
+                    <svg class="w-6 h-6" style="color: {{ project.accent_color }};" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                    </svg>
+                </div>
+                <h3 class="text-lg font-bold text-gray-900 mb-2">Stay in the loop</h3>
+                <p class="text-sm text-gray-500 mb-6">Get notified when we ship new features and improvements.</p>
+                <form action="/changelog/{{ project.slug }}/subscribe" method="POST" class="flex gap-2 sm:flex-row flex-col">
+                    <input type="email" name="email" required placeholder="your@email.com"
+                           class="flex-1 bg-white border border-gray-300 rounded-lg px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent transition-shadow"
+                           style="--tw-ring-color: {{ project.accent_color }};">
+                    <button type="submit"
+                            class="shrink-0 text-white font-medium py-2.5 px-5 rounded-lg text-sm transition-all hover:opacity-90 hover:shadow-md"
+                            style="background-color: {{ project.accent_color }};">
+                        Subscribe
+                    </button>
+                </form>
+                <p class="text-xs text-gray-400 mt-3">Unsubscribe anytime. No spam.</p>
+            </div>
+        </div>
+    </section>
+
     <!-- Footer -->
     <footer class="border-t border-gray-100 bg-white">
         <div class="max-w-3xl mx-auto px-6 py-6 text-center">

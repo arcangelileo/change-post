@@ -1,4 +1,7 @@
-from fastapi import APIRouter, Depends, HTTPException, Request
+import asyncio
+import logging
+
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -6,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.deps import get_current_user
 from app.database import get_db
 from app.models.user import User
+from app.services.email import send_post_notification
 from app.services.post import (
     CATEGORIES,
     create_post,
@@ -17,6 +21,9 @@ from app.services.post import (
     update_post,
 )
 from app.services.project import get_project_by_id
+from app.services.subscriber import get_subscribers_for_project
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/projects/{project_id}/posts", tags=["posts"])
 templates = Jinja2Templates(directory="src/app/templates")
@@ -73,6 +80,7 @@ async def create_post_page(
 async def create_post_handler(
     project_id: str,
     request: Request,
+    background_tasks: BackgroundTasks,
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
@@ -112,6 +120,24 @@ async def create_post_handler(
         body_markdown=body_markdown, category=category,
         is_published=is_published,
     )
+
+    # Send email notifications if published
+    if is_published:
+        subscribers = await get_subscribers_for_project(db, project_id)
+        if subscribers:
+            cat_label = CATEGORIES.get(category, {}).get("label", category)
+            background_tasks.add_task(
+                send_post_notification,
+                subscribers=subscribers,
+                project_name=project.name,
+                project_slug=project.slug,
+                post_title=post.title,
+                post_slug=post.slug,
+                post_body_html=post.body_html,
+                post_category_label=cat_label,
+                accent_color=project.accent_color,
+            )
+
     return RedirectResponse(
         url=f"/projects/{project_id}/posts/{post.id}",
         status_code=302,
@@ -212,14 +238,35 @@ async def update_post_handler(
 async def toggle_publish_handler(
     project_id: str,
     post_id: str,
+    background_tasks: BackgroundTasks,
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    await _get_user_project(project_id, user, db)
+    project = await _get_user_project(project_id, user, db)
     post = await get_post_by_id(db, post_id)
     if not post or post.project_id != project_id:
         raise HTTPException(status_code=404, detail="Post not found")
+
+    was_published = post.is_published
     await toggle_publish(db, post)
+
+    # Send notifications only when going from draft -> published
+    if not was_published and post.is_published:
+        subscribers = await get_subscribers_for_project(db, project_id)
+        if subscribers:
+            cat_label = CATEGORIES.get(post.category, {}).get("label", post.category)
+            background_tasks.add_task(
+                send_post_notification,
+                subscribers=subscribers,
+                project_name=project.name,
+                project_slug=project.slug,
+                post_title=post.title,
+                post_slug=post.slug,
+                post_body_html=post.body_html,
+                post_category_label=cat_label,
+                accent_color=project.accent_color,
+            )
+
     return RedirectResponse(
         url=f"/projects/{project_id}/posts/{post.id}",
         status_code=302,
