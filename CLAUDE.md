@@ -1,6 +1,6 @@
 # ChangePost
 
-Phase: DEVELOPMENT
+Phase: QA
 
 ## Project Spec
 - **Repo**: https://github.com/arcangelileo/change-post
@@ -49,8 +49,8 @@ Phase: DEVELOPMENT
 - [x] Add post view tracking and analytics dashboard
 - [x] Implement API key management and programmatic post creation API
 - [x] Write comprehensive tests (auth, posts, public pages, API, subscriptions)
-- [ ] Write Dockerfile and docker-compose.yml
-- [ ] Write README with setup and deploy instructions
+- [x] Write Dockerfile and docker-compose.yml
+- [x] Write README with setup and deploy instructions
 
 ## Progress Log
 ### Session 1 — IDEATION
@@ -110,6 +110,14 @@ Phase: DEVELOPMENT
 - 115 tests total (52 new): subscribers (13), widget (11), analytics (6), API keys (8), programmatic API (14), all existing tests still passing
 - All 115 tests passing
 
+### Session 6 — DOCKER & README
+- **Dockerfile**: Multi-stage build (builder + runtime), Python 3.12-slim base, non-root `appuser`, pip-based dependency install, health check via `/health` endpoint, `PYTHONPATH` set to `src/`
+- **docker-compose.yml**: Single service with `.env` file support, persistent volume for SQLite data, health check, `unless-stopped` restart policy
+- **.dockerignore**: Excludes `.venv`, `.git`, tests, `.env`, databases, and caches for lean images
+- **README.md**: Full documentation with features overview, tech stack, quick start (local dev + Docker), environment variable reference table, API reference with examples, widget embedding instructions, project structure overview
+- All 115 tests still passing
+- **Phase changed to QA** — all backlog items complete
+
 ## Known Issues
 (none yet)
 
@@ -117,10 +125,14 @@ Phase: DEVELOPMENT
 ```
 change-post/
 ├── CLAUDE.md
+├── README.md
 ├── .gitignore
+├── .dockerignore
 ├── .env.example
 ├── pyproject.toml
 ├── alembic.ini
+├── Dockerfile
+├── docker-compose.yml
 ├── alembic/
 │   ├── env.py
 │   ├── script.py.mako
