@@ -1,9 +1,11 @@
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Request
-from fastapi.responses import RedirectResponse
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.config import settings
 from app.database import init_db
@@ -59,6 +61,36 @@ app.include_router(widget_page_router)
 app.include_router(programmatic_router)
 
 
+@app.exception_handler(StarletteHTTPException)
+async def custom_http_exception_handler(request: Request, exc: StarletteHTTPException):
+    # Redirect 401 to login for browser requests (not API)
+    if exc.status_code == 401 and not request.url.path.startswith("/api/"):
+        return RedirectResponse(url="/login", status_code=302)
+
+    # Show nice 404 page for browser requests
+    if exc.status_code == 404 and not request.url.path.startswith("/api/"):
+        return templates.TemplateResponse(
+            request,
+            "pages/error.html",
+            {"status_code": 404, "message": "Page not found", "detail": "The page you're looking for doesn't exist or has been moved."},
+            status_code=404,
+        )
+
+    # Default: return JSON for API routes
+    from fastapi.responses import JSONResponse
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"detail": exc.detail},
+    )
+
+
 @app.get("/")
 async def root(request: Request):
+    # Redirect authenticated users to dashboard, others to login
+    token = request.cookies.get("access_token")
+    if token:
+        from app.services.auth import decode_access_token
+        user_id = decode_access_token(token)
+        if user_id:
+            return RedirectResponse(url="/dashboard", status_code=302)
     return RedirectResponse(url="/login", status_code=302)

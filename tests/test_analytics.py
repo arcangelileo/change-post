@@ -49,9 +49,10 @@ async def _setup_project_with_data(client: AsyncClient) -> dict:
 
 
 async def test_analytics_requires_auth(client: AsyncClient):
-    """Analytics page requires authentication."""
-    resp = await client.get("/projects/some-id/analytics")
-    assert resp.status_code == 401 or resp.status_code == 403
+    """Analytics page requires authentication — redirects to login."""
+    resp = await client.get("/projects/some-id/analytics", follow_redirects=False)
+    assert resp.status_code == 302
+    assert resp.headers["location"] == "/login"
 
 
 async def test_analytics_page_loads(client: AsyncClient):

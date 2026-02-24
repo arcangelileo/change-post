@@ -1,6 +1,6 @@
 # ChangePost
 
-Phase: QA
+Phase: DEPLOYMENT
 
 ## Project Spec
 - **Repo**: https://github.com/arcangelileo/change-post
@@ -118,8 +118,20 @@ Phase: QA
 - All 115 tests still passing
 - **Phase changed to QA** — all backlog items complete
 
+### Session 7 — QA & SECURITY HARDENING
+- **CRITICAL: XSS in markdown rendering** — `bleach.clean(strip=True)` removed `<script>` tags but preserved their text content (e.g. `alert("xss")` remained as plain text). Fixed by pre-stripping dangerous tags (`<script>`, `<style>`, `<iframe>`, `<object>`, `<embed>`, `<form>`, `<input>`, `<textarea>`, `<button>`) and their content via regex before bleach processes remaining HTML.
+- **CRITICAL: XSS in widget JS** — User-controlled `project.slug` and `project.accent_color` were interpolated directly into JavaScript string literals without escaping, allowing JS breakout attacks. Fixed by using `json.dumps()` for safe JS string escaping. Additionally, post titles and excerpts rendered in the widget used raw `innerHTML` without escaping — added a client-side `esc()` helper that creates a text node to safely escape all user-provided content.
+- **HIGH: CSS/JS injection via accent_color** — The `accent_color` field had no validation. Malicious values like `red; background: javascript:alert(1)` could be injected into CSS `style` attributes across templates and email HTML. Fixed by adding `sanitize_hex_color()` with a strict regex (`^#[0-9A-Fa-f]{6}$`) in the project create/edit handlers, falling back to the default `#6366f1`.
+- **HIGH: Missing DB unique constraint on subscribers** — The `Subscriber` model had a comment saying "one email per project" but the `__table_args__` only set `sqlite_autoincrement=False` without an actual constraint. Added `UniqueConstraint("email", "project_id")` to enforce data integrity at the database level.
+- **MEDIUM: API key prefix column too small** — `key_prefix` was `String(8)` but the generated prefix is 12 characters (`cpk_` + 8 chars). Changed column to `String(16)` to prevent truncation.
+- **LOW: Unused imports** — Removed unused `import asyncio`, `import logging`, and `logger` from `posts.py`. Removed unused `import re` from `widget.py`.
+- **UI: Missing toolbar buttons in post editor** — The edit post page was missing the "Code block" (`{ }`) and "Link" buttons that the create post page had. Added them for consistency.
+- **Tests**: Added 3 new security tests — XSS iframe prevention, accent_color sanitization validation, widget JS HTML escape function verification. Total: 123 tests, all passing.
+- **Full QA review**: Reviewed all 12 API route files, 6 service files, 5 model files, 3 layout templates, and 18 page templates. All forms validate correctly with proper error display. All CRUD operations work end-to-end. Navigation is intuitive with correct breadcrumbs. Empty states are well-designed. Auth flow works completely (register → login → dashboard → logout). Public changelog renders beautifully with timeline layout, category filters, and subscribe section. Widget JS is self-contained and mobile-responsive. Analytics dashboard shows correct stats. API key management with copy-to-clipboard works. Programmatic API returns proper responses.
+- **Phase changed to DEPLOYMENT** — all QA items resolved, 123 tests passing
+
 ## Known Issues
-(none yet)
+(none — all issues found during QA have been resolved)
 
 ## Files Structure
 ```

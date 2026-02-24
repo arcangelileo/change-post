@@ -310,3 +310,38 @@ async def test_api_post_fields(client: AsyncClient):
     assert "is_published" in post
     assert "published_at" in post
     assert "created_at" in post
+
+
+async def test_api_create_published_post_with_subscribers(client: AsyncClient):
+    """API can create a published post when subscribers exist (email send won't fail)."""
+    info = await _setup_project_with_api_key(client)
+
+    # Get project slug to subscribe
+    resp = await client.get(f"/projects/{info['project_id']}")
+    import re as _re
+    slug_match = _re.search(r'/changelog/([\w-]+)', resp.text)
+    slug = slug_match.group(1)
+
+    # Add a subscriber
+    await client.post(
+        f"/changelog/{slug}/subscribe",
+        data={"email": "api-notify@example.com"},
+    )
+
+    # Create published post via API — should succeed even with subscribers
+    resp = await client.post(
+        "/api/v1/posts",
+        headers={
+            "Authorization": f"Bearer {info['api_key']}",
+            "Content-Type": "application/json",
+        },
+        json={
+            "title": "Notification Test Post",
+            "body_markdown": "Subscribers should be notified",
+            "category": "new_feature",
+            "is_published": True,
+        },
+    )
+    assert resp.status_code == 201
+    data = resp.json()
+    assert data["post"]["is_published"] is True

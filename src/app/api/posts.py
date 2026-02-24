@@ -1,6 +1,3 @@
-import asyncio
-import logging
-
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
@@ -22,8 +19,6 @@ from app.services.post import (
 )
 from app.services.project import get_project_by_id
 from app.services.subscriber import get_subscribers_for_project
-
-logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/projects/{project_id}/posts", tags=["posts"])
 templates = Jinja2Templates(directory="src/app/templates")

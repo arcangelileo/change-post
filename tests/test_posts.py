@@ -47,7 +47,8 @@ async def create_test_post(client, project_id, title="Test Post", action="draft"
 @pytest.mark.asyncio
 async def test_posts_list_requires_auth(client):
     response = await client.get("/projects/fake-id/posts", follow_redirects=False)
-    assert response.status_code == 401
+    assert response.status_code == 302
+    assert response.headers["location"] == "/login"
 
 
 @pytest.mark.asyncio

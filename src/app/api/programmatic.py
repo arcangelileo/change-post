@@ -1,15 +1,18 @@
-from fastapi import APIRouter, Depends, HTTPException, Header, Request
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Header, Request
 from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
 from app.services.api_key import verify_api_key
+from app.services.email import send_post_notification
 from app.services.post import (
     CATEGORIES,
     create_post,
     get_posts_for_project,
     get_post_by_id,
 )
+from app.services.project import get_project_by_id
+from app.services.subscriber import get_subscribers_for_project
 
 router = APIRouter(prefix="/api/v1", tags=["programmatic_api"])
 
@@ -75,6 +78,7 @@ async def api_list_posts(
 @router.post("/posts")
 async def api_create_post(
     request: Request,
+    background_tasks: BackgroundTasks,
     api_key=Depends(get_api_key_project),
     db: AsyncSession = Depends(get_db),
 ):
@@ -113,6 +117,24 @@ async def api_create_post(
         category=category,
         is_published=is_published,
     )
+
+    # Send email notifications if published
+    if is_published:
+        subscribers = await get_subscribers_for_project(db, api_key.project_id)
+        if subscribers:
+            project = await get_project_by_id(db, api_key.project_id)
+            cat_label = CATEGORIES.get(category, {}).get("label", category)
+            background_tasks.add_task(
+                send_post_notification,
+                subscribers=subscribers,
+                project_name=project.name,
+                project_slug=project.slug,
+                post_title=post.title,
+                post_slug=post.slug,
+                post_body_html=post.body_html,
+                post_category_label=cat_label,
+                accent_color=project.accent_color,
+            )
 
     return JSONResponse(
         status_code=201,

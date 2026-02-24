@@ -255,3 +255,71 @@ async def test_category_labels_displayed(client):
     client.cookies.clear()
     response = await client.get(f"/changelog/{slug}")
     assert "New Feature" in response.text
+
+
+@pytest.mark.asyncio
+async def test_markdown_xss_prevention(client):
+    """Ensure script tags in markdown are sanitized."""
+    await register_and_login(client)
+    project_id, slug = await create_project_with_slug(client)
+    await client.post(
+        f"/projects/{project_id}/posts/new",
+        data={
+            "title": "XSS Test",
+            "body_markdown": '<script>alert("xss")</script>\n\nSafe **content**',
+            "category": "improvement",
+            "action": "publish",
+        },
+        follow_redirects=False,
+    )
+
+    client.cookies.clear()
+    response = await client.get(f"/changelog/{slug}")
+    assert response.status_code == 200
+    # Malicious script content should be stripped, not rendered
+    assert 'alert("xss")' not in response.text
+    # But safe markdown content should still render
+    assert "<strong>content</strong>" in response.text
+
+
+@pytest.mark.asyncio
+async def test_markdown_xss_iframe_prevention(client):
+    """Ensure iframe tags in markdown are stripped."""
+    await register_and_login(client)
+    project_id, slug = await create_project_with_slug(client)
+    await client.post(
+        f"/projects/{project_id}/posts/new",
+        data={
+            "title": "Iframe XSS",
+            "body_markdown": '<iframe src="https://evil.com"></iframe>\n\nSafe **text**',
+            "category": "improvement",
+            "action": "publish",
+        },
+        follow_redirects=False,
+    )
+
+    client.cookies.clear()
+    response = await client.get(f"/changelog/{slug}")
+    assert response.status_code == 200
+    assert "<iframe" not in response.text
+    assert "<strong>text</strong>" in response.text
+
+
+@pytest.mark.asyncio
+async def test_accent_color_sanitized(client):
+    """Ensure accent_color is validated as hex color."""
+    await register_and_login(client)
+    response = await client.post(
+        "/projects/new",
+        data={
+            "name": "Malicious Color",
+            "accent_color": "red; background: javascript:alert(1)",
+        },
+        follow_redirects=False,
+    )
+    assert response.status_code == 302
+    project_url = response.headers["location"]
+    detail = await client.get(project_url)
+    # Should fall back to default, not contain the malicious input
+    assert "javascript:" not in detail.text
+    assert "#6366f1" in detail.text

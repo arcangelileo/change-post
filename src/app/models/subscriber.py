@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, ForeignKey, String, func
+from sqlalchemy import DateTime, ForeignKey, String, UniqueConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -27,6 +27,5 @@ class Subscriber(Base):
     project: Mapped["Project"] = relationship(back_populates="subscribers")  # noqa: F821
 
     __table_args__ = (
-        # Unique constraint: one email per project
-        {"sqlite_autoincrement": False},
+        UniqueConstraint("email", "project_id", name="uq_subscriber_email_project"),
     )

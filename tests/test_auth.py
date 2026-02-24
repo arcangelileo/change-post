@@ -222,7 +222,8 @@ async def test_logout(client):
 @pytest.mark.asyncio
 async def test_dashboard_requires_auth(client):
     response = await client.get("/dashboard", follow_redirects=False)
-    assert response.status_code == 401
+    assert response.status_code == 302
+    assert response.headers["location"] == "/login"
 
 
 @pytest.mark.asyncio
@@ -285,3 +286,30 @@ async def test_root_redirects_to_login(client):
     response = await client.get("/", follow_redirects=False)
     assert response.status_code == 302
     assert response.headers["location"] == "/login"
+
+
+@pytest.mark.asyncio
+async def test_root_redirects_to_dashboard_when_logged_in(client):
+    """Root route redirects authenticated users to dashboard."""
+    reg_response = await client.post(
+        "/register",
+        data={
+            "email": "test@example.com",
+            "username": "testuser",
+            "password": "securepass123",
+        },
+        follow_redirects=False,
+    )
+    client.cookies.set("access_token", reg_response.cookies.get("access_token"))
+    response = await client.get("/", follow_redirects=False)
+    assert response.status_code == 302
+    assert response.headers["location"] == "/dashboard"
+
+
+@pytest.mark.asyncio
+async def test_404_page_renders_html(client):
+    """404 errors show a nice HTML error page, not JSON."""
+    response = await client.get("/nonexistent-page")
+    assert response.status_code == 404
+    assert "Page not found" in response.text
+    assert "Go to Dashboard" in response.text

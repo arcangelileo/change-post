@@ -9,6 +9,7 @@ from app.database import get_db
 from app.models.post import Post
 from app.models.user import User
 from app.services.project import get_projects_for_user
+from app.services.subscriber import get_total_subscribers_for_user
 
 router = APIRouter(tags=["dashboard"])
 templates = Jinja2Templates(directory="src/app/templates")
@@ -23,11 +24,13 @@ async def dashboard(
     projects = await get_projects_for_user(db, user.id)
     project_ids = [p.id for p in projects]
     total_posts = 0
+    total_subscribers = 0
     if project_ids:
         result = await db.execute(
             select(func.count(Post.id)).where(Post.project_id.in_(project_ids))
         )
         total_posts = result.scalar_one()
+        total_subscribers = await get_total_subscribers_for_user(db, project_ids)
 
     return templates.TemplateResponse(
         request,
@@ -36,5 +39,6 @@ async def dashboard(
             "user": user,
             "projects": projects,
             "total_posts": total_posts,
+            "total_subscribers": total_subscribers,
         },
     )

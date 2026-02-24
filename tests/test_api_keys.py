@@ -30,9 +30,10 @@ async def _setup_project(client: AsyncClient) -> dict:
 # --- API Key management ---
 
 async def test_api_keys_requires_auth(client: AsyncClient):
-    """API keys page requires authentication."""
-    resp = await client.get("/projects/some-id/api-keys")
-    assert resp.status_code == 401 or resp.status_code == 403
+    """API keys page requires authentication — redirects to login."""
+    resp = await client.get("/projects/some-id/api-keys", follow_redirects=False)
+    assert resp.status_code == 302
+    assert resp.headers["location"] == "/login"
 
 
 async def test_api_keys_page_loads(client: AsyncClient):

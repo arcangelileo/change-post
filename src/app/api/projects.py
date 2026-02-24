@@ -1,3 +1,5 @@
+import re
+
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
@@ -17,6 +19,13 @@ from app.services.project import (
 from app.services.subscriber import get_subscriber_count_for_project
 
 router = APIRouter(prefix="/projects", tags=["projects"])
+
+HEX_COLOR_RE = re.compile(r"^#[0-9A-Fa-f]{6}$")
+
+
+def sanitize_hex_color(color: str, default: str = "#6366f1") -> str:
+    """Validate hex color format to prevent CSS/JS injection."""
+    return color if HEX_COLOR_RE.match(color) else default
 templates = Jinja2Templates(directory="src/app/templates")
 
 
@@ -54,7 +63,7 @@ async def create_project_handler(
     name = form.get("name", "").strip()
     description = form.get("description", "").strip() or None
     website_url = form.get("website_url", "").strip() or None
-    accent_color = form.get("accent_color", "#6366f1").strip()
+    accent_color = sanitize_hex_color(form.get("accent_color", "#6366f1").strip())
 
     errors = []
     if not name:
@@ -141,7 +150,7 @@ async def update_project_handler(
     name = form.get("name", "").strip()
     description = form.get("description", "").strip() or None
     website_url = form.get("website_url", "").strip() or None
-    accent_color = form.get("accent_color", project.accent_color).strip()
+    accent_color = sanitize_hex_color(form.get("accent_color", project.accent_color).strip())
 
     errors = []
     if not name:

@@ -144,9 +144,10 @@ async def test_unsubscribe_invalid_token(client: AsyncClient):
 # --- Dashboard subscriber management ---
 
 async def test_subscribers_list_requires_auth(client: AsyncClient):
-    """Subscriber list requires authentication."""
-    resp = await client.get("/projects/some-id/subscribers")
-    assert resp.status_code == 401 or resp.status_code == 403
+    """Subscriber list requires authentication — redirects to login."""
+    resp = await client.get("/projects/some-id/subscribers", follow_redirects=False)
+    assert resp.status_code == 302
+    assert resp.headers["location"] == "/login"
 
 
 async def test_subscribers_list_empty(client: AsyncClient):
@@ -225,4 +226,25 @@ async def test_subscriber_count_on_project_detail(client: AsyncClient):
     resp = await client.get(f"/projects/{info['project_id']}")
     assert resp.status_code == 200
     # The subscriber count should be 2
+    assert ">2<" in resp.text
+
+
+async def test_dashboard_subscriber_count(client: AsyncClient):
+    """Dashboard shows total subscriber count across projects."""
+    info = await _register_and_login(client)
+    slug = await _get_project_slug(client, info["project_id"])
+
+    # Subscribe emails
+    await client.post(
+        f"/changelog/{slug}/subscribe",
+        data={"email": "dash1@example.com"},
+    )
+    await client.post(
+        f"/changelog/{slug}/subscribe",
+        data={"email": "dash2@example.com"},
+    )
+
+    resp = await client.get("/dashboard")
+    assert resp.status_code == 200
+    # Should show 2 subscribers, not hardcoded 0
     assert ">2<" in resp.text

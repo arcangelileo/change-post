@@ -139,9 +139,10 @@ async def test_widget_embed_js_cors_headers(client: AsyncClient):
 # --- Widget embed page (dashboard) ---
 
 async def test_widget_embed_page_requires_auth(client: AsyncClient):
-    """Widget embed page requires authentication."""
-    resp = await client.get("/projects/some-id/widget")
-    assert resp.status_code == 401 or resp.status_code == 403
+    """Widget embed page requires authentication — redirects to login."""
+    resp = await client.get("/projects/some-id/widget", follow_redirects=False)
+    assert resp.status_code == 302
+    assert resp.headers["location"] == "/login"
 
 
 async def test_widget_embed_page(client: AsyncClient):
@@ -152,3 +153,15 @@ async def test_widget_embed_page(client: AsyncClient):
     assert "embed.js" in resp.text
     assert "Embeddable Widget" in resp.text
     assert info["slug"] in resp.text
+
+
+async def test_widget_embed_js_has_html_escape(client: AsyncClient):
+    """Widget JS includes HTML escaping function to prevent XSS."""
+    info = await _setup_project_with_posts(client)
+    resp = await client.get(f"/api/widget/{info['slug']}/embed.js")
+    assert resp.status_code == 200
+    # Verify the esc() function is included for XSS prevention
+    assert "function esc(" in resp.text
+    # Verify esc() is used for post content rendering
+    assert "esc(post.title)" in resp.text
+    assert "esc(post.excerpt)" in resp.text

@@ -101,8 +101,14 @@
                         <button type="button" onclick="insertMarkdown('- ', '')" title="List" class="p-1.5 rounded hover:bg-gray-200 text-gray-600 transition-colors">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
                         </button>
-                        <button type="button" onclick="insertMarkdown('`', '`')" title="Code" class="p-1.5 rounded hover:bg-gray-200 text-gray-600 transition-colors">
+                        <button type="button" onclick="insertMarkdown('`', '`')" title="Inline code" class="p-1.5 rounded hover:bg-gray-200 text-gray-600 transition-colors">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M16 18l6-6-6-6M8 6l-6 6 6 6"/></svg>
+                        </button>
+                        <button type="button" onclick="insertMarkdown('```\n', '\n```')" title="Code block" class="p-1.5 rounded hover:bg-gray-200 text-gray-600 transition-colors text-xs font-mono font-bold">
+                            { }
+                        </button>
+                        <button type="button" onclick="insertMarkdown('[', '](url)')" title="Link" class="p-1.5 rounded hover:bg-gray-200 text-gray-600 transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
                         </button>
                     </div>
                     <textarea id="body_markdown" name="body_markdown"

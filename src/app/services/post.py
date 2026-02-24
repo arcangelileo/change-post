@@ -2,6 +2,7 @@ import re
 import uuid
 from datetime import datetime, timezone
 
+import bleach
 import markdown
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -24,10 +25,50 @@ def slugify(text: str) -> str:
     return text.strip("-")
 
 
+ALLOWED_TAGS = [
+    "a", "abbr", "b", "blockquote", "br", "code", "dd", "del", "details",
+    "div", "dl", "dt", "em", "h1", "h2", "h3", "h4", "h5", "h6", "hr",
+    "i", "img", "kbd", "li", "ol", "p", "pre", "s", "small", "span",
+    "strong", "sub", "summary", "sup", "table", "tbody", "td", "th",
+    "thead", "tr", "ul",
+]
+
+ALLOWED_ATTRIBUTES = {
+    "a": ["href", "title", "rel"],
+    "img": ["src", "alt", "title", "width", "height"],
+    "td": ["align"],
+    "th": ["align"],
+    "code": ["class"],
+    "div": ["class"],
+    "span": ["class"],
+    "pre": ["class"],
+}
+
+
 def render_markdown(text: str) -> str:
-    return markdown.markdown(
+    raw_html = markdown.markdown(
         text,
         extensions=["fenced_code", "tables", "nl2br", "sane_lists"],
+    )
+    # Strip dangerous tags AND their content before bleach processes remaining tags
+    dangerous_tags = re.compile(
+        r"<\s*(script|style|iframe|object|embed|form|input|textarea|button)"
+        r"[\s>].*?</\s*\1\s*>",
+        re.DOTALL | re.IGNORECASE,
+    )
+    raw_html = dangerous_tags.sub("", raw_html)
+    # Also strip self-closing / unclosed dangerous tags
+    raw_html = re.sub(
+        r"<\s*/?(script|style|iframe|object|embed|form|input|textarea|button)\b[^>]*>",
+        "",
+        raw_html,
+        flags=re.IGNORECASE,
+    )
+    return bleach.clean(
+        raw_html,
+        tags=ALLOWED_TAGS,
+        attributes=ALLOWED_ATTRIBUTES,
+        strip=True,
     )
 
 

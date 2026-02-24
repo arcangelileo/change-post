@@ -15,7 +15,7 @@ class APIKey(Base):
     )
     name: Mapped[str] = mapped_column(String(200), nullable=False)
     key_hash: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
-    key_prefix: Mapped[str] = mapped_column(String(8), nullable=False)
+    key_prefix: Mapped[str] = mapped_column(String(16), nullable=False)
     project_id: Mapped[str] = mapped_column(
         String(36), ForeignKey("projects.id", ondelete="CASCADE"), nullable=False
     )

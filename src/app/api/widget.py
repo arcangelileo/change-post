@@ -1,3 +1,5 @@
+import json
+
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse, Response
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -7,6 +9,11 @@ from app.services.post import CATEGORIES, get_published_posts_for_project
 from app.services.project import get_project_by_slug
 
 router = APIRouter(prefix="/api/widget", tags=["widget"])
+
+
+def _js_string_escape(s: str) -> str:
+    """Escape a string for safe interpolation into a JS string literal."""
+    return json.dumps(s)[1:-1]  # json.dumps adds quotes; strip them
 
 
 @router.get("/{project_slug}/posts")
@@ -65,14 +72,17 @@ async def widget_script(
         raise HTTPException(status_code=404, detail="Project not found")
 
     base_url = str(request.base_url).rstrip("/")
+    safe_slug = _js_string_escape(project.slug)
+    safe_accent = _js_string_escape(project.accent_color)
+    safe_base = _js_string_escape(base_url)
 
     js_code = f"""
 (function() {{
   'use strict';
 
-  var SLUG = '{project.slug}';
-  var ACCENT = '{project.accent_color}';
-  var BASE_URL = '{base_url}';
+  var SLUG = '{safe_slug}';
+  var ACCENT = '{safe_accent}';
+  var BASE_URL = '{safe_base}';
   var API_URL = BASE_URL + '/api/widget/' + SLUG + '/posts?limit=5';
   var CHANGELOG_URL = BASE_URL + '/changelog/' + SLUG;
 
@@ -287,6 +297,13 @@ async def widget_script(
     }}
   }});
 
+  // HTML-escape to prevent XSS from user content
+  function esc(s) {{
+    var d = document.createElement('div');
+    d.appendChild(document.createTextNode(s || ''));
+    return d.innerHTML;
+  }}
+
   // Fetch posts
   function loadPosts() {{
     fetch(API_URL)
@@ -301,10 +318,10 @@ async def widget_script(
         var html = '';
         data.posts.forEach(function(post) {{
           var date = post.published_at ? new Date(post.published_at).toLocaleDateString('en-US', {{month: 'short', day: 'numeric', year: 'numeric'}}) : '';
-          html += '<a class="cp-widget-post" href="' + BASE_URL + post.url + '" target="_blank">';
-          html += '<div class="cp-post-meta"><span class="cp-post-cat">' + (post.category_label || post.category) + '</span><span class="cp-post-date">' + date + '</span></div>';
-          html += '<p class="cp-post-title">' + post.title + '</p>';
-          html += '<p class="cp-post-excerpt">' + post.excerpt + '</p>';
+          html += '<a class="cp-widget-post" href="' + esc(BASE_URL + post.url) + '" target="_blank">';
+          html += '<div class="cp-post-meta"><span class="cp-post-cat">' + esc(post.category_label || post.category) + '</span><span class="cp-post-date">' + esc(date) + '</span></div>';
+          html += '<p class="cp-post-title">' + esc(post.title) + '</p>';
+          html += '<p class="cp-post-excerpt">' + esc(post.excerpt) + '</p>';
           html += '</a>';
         }});
         container.innerHTML = html;
