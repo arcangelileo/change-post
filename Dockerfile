@@ -3,6 +3,11 @@ FROM python:3.12-slim AS builder
 
 WORKDIR /build
 
+# Install build dependencies
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends gcc && \
+    rm -rf /var/lib/apt/lists/*
+
 # Copy dependency files first for layer caching
 COPY pyproject.toml ./
 COPY src/ ./src/
@@ -14,6 +19,15 @@ RUN python -m venv /build/.venv && \
 
 # --- Stage 2: Runtime ---
 FROM python:3.12-slim AS runtime
+
+LABEL maintainer="ChangePost" \
+      description="Changelog and product update management platform" \
+      version="1.0.0"
+
+# Install tini for proper PID 1 signal handling
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends tini curl && \
+    rm -rf /var/lib/apt/lists/*
 
 # Create non-root user
 RUN groupadd --gid 1000 appuser && \
@@ -44,9 +58,12 @@ USER appuser
 # Expose port
 EXPOSE 8000
 
-# Health check
+# Health check using curl for reliability
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')" || exit 1
+    CMD curl -f http://localhost:8000/health || exit 1
 
-# Run the application
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Use tini as PID 1 for proper signal forwarding
+ENTRYPOINT ["tini", "--"]
+
+# Run the application with graceful shutdown
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers", "--forwarded-allow-ips", "*"]

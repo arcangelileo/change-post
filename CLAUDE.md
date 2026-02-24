@@ -1,6 +1,6 @@
 # ChangePost
 
-Phase: DEPLOYMENT
+Phase: COMPLETE
 
 ## Project Spec
 - **Repo**: https://github.com/arcangelileo/change-post
@@ -31,8 +31,8 @@ Phase: DEPLOYMENT
 - **API keys**: Per-project API keys for programmatic access, stored as hashed values
 - **Configuration**: Pydantic Settings, all config via environment variables
 - **Project structure**: `src/app/` with `api/`, `models/`, `schemas/`, `services/`, `templates/`, `static/` subdirs
-- **Testing**: pytest + pytest-asyncio + httpx async test client, in-memory SQLite
-- **Docker**: Multi-stage build, non-root user, single Dockerfile + docker-compose.yml
+- **Testing**: pytest + pytest-asyncio + httpx async test client, in-memory SQLite (123 tests)
+- **Docker**: Multi-stage build, non-root user, tini for signal handling, single Dockerfile + docker-compose.yml
 
 ## Task Backlog
 - [x] Create project structure, pyproject.toml, and configuration
@@ -129,6 +129,15 @@ Phase: DEPLOYMENT
 - **Tests**: Added 3 new security tests — XSS iframe prevention, accent_color sanitization validation, widget JS HTML escape function verification. Total: 123 tests, all passing.
 - **Full QA review**: Reviewed all 12 API route files, 6 service files, 5 model files, 3 layout templates, and 18 page templates. All forms validate correctly with proper error display. All CRUD operations work end-to-end. Navigation is intuitive with correct breadcrumbs. Empty states are well-designed. Auth flow works completely (register → login → dashboard → logout). Public changelog renders beautifully with timeline layout, category filters, and subscribe section. Widget JS is self-contained and mobile-responsive. Analytics dashboard shows correct stats. API key management with copy-to-clipboard works. Programmatic API returns proper responses.
 - **Phase changed to DEPLOYMENT** — all QA items resolved, 123 tests passing
+
+### Session 8 — FINAL DEPLOYMENT & COMPLETION
+- **Dockerfile hardened**: Added `tini` as PID 1 for proper signal forwarding (SIGTERM handling), installed `curl` for reliable health checks, added `gcc` in builder stage for native extensions, added `--proxy-headers` and `--forwarded-allow-ips` to uvicorn for reverse proxy support, added container labels
+- **docker-compose.yml improved**: Configurable host port via `PORT` env var, switched health check to curl, added structured JSON logging with rotation (10MB max, 3 files)
+- **.env.example enhanced**: Added detailed comments explaining each variable, included generation command for SECRET_KEY, documented SMTP port guidance (587 vs 465), added PORT variable
+- **README.md rewritten**: Comprehensive documentation with feature descriptions organized by capability, tech stack table, Docker quick start, local development setup, full configuration reference with two tables (core + SMTP), complete API reference with response examples and cURL commands, widget embedding guide, ASCII architecture diagram, project structure overview, contributing guidelines
+- **Code cleanup**: Removed unused imports (`RequestValidationError`, `HTTPException`, `HTMLResponse`) from `main.py`
+- **All 123 tests passing** — verified after all changes
+- **Phase changed to COMPLETE** — project is fully built, tested, documented, and deployment-ready
 
 ## Known Issues
 (none — all issues found during QA have been resolved)
